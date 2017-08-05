@@ -1,0 +1,25 @@
+hash: 08eaa6c5579b0a36fdee8a6b0c8cb6a81a36ab78d79dfb745b3defa271a67784
+updated: 2017-08-05T16:50:09.6958127+02:00
+imports:
+- name: github.com/dgrijalva/jwt-go
+  version: d2709f9f1f31ebcda9651b03077758c1f3a0018c
+- name: github.com/graphql-go/graphql
+  version: d114382b5e9f369f253062f18b5033cfff025f82
+  subpackages:
+  - gqlerrors
+  - language/ast
+  - language/kinds
+  - language/lexer
+  - language/location
+  - language/parser
+  - language/printer
+  - language/source
+  - language/typeInfo
+  - language/visitor
+- name: github.com/graphql-go/handler
+  version: 07e3dd439c1f4ec14e685af7c48e8863bcc42c9d
+- name: golang.org/x/net
+  version: f5079bd7f6f74e23c4d65efa0f4ce14cbd6a3c0f
+  subpackages:
+  - context
+testImports: []

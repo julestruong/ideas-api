@@ -1,0 +1,8 @@
+package: github.com/julestruong/ideas-api
+import:
+- package: github.com/dgrijalva/jwt-go
+  version: v3.0.0
+- package: github.com/graphql-go/graphql
+  version: v7.1.0
+- package: github.com/graphql-go/handler
+  version: v0.1.0
