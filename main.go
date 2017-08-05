@@ -2,6 +2,8 @@ package main
 
 import (
 	"./queries"
+	"./mutations"
+	"./security"
 
 	"net/http"
 	"log"
@@ -10,16 +12,16 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
-func httpHandler() {
-	log.Print("oui");
-}
-
 func main() {
 
 	schemaConfig := graphql.SchemaConfig{
 		Query: graphql.NewObject(graphql.ObjectConfig{
 			Name: 	"RootQuery",
 			Fields: queries.GetRootFields(),
+		}),
+		Mutation: graphql.NewObject(graphql.ObjectConfig{
+			Name:	"RootMutation",
+			Fields: mutations.GetRootFields(),
 		}),
 	}
 
@@ -34,7 +36,7 @@ func main() {
 		Pretty: true,
 	})
 
-	http.Handle("/", httpHandler)
+	http.Handle("/", security.Handle(httpHandler))
 	log.Print("ready: listening...\n")
 
 	http.ListenAndServe(":8383", nil)

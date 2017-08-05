@@ -7,7 +7,7 @@ import (
 type User struct {
 	ID		  int 	 `db:"id" json:"id"`
 	Firstname string `db:"firstname" json:"firstname"`
-	LastName  string `db:"lastname" json:"lastname"`
+	Lastname  string `db:"lastname" json:"lastname"`
 }
 
 var UserType = graphql.NewObject(graphql.ObjectConfig{
