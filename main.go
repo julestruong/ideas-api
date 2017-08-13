@@ -3,26 +3,29 @@ package main
 import (
 	"./queries"
 	"./mutations"
-	"./security"
+    "./security"
+    "./database"
 
 	"net/http"
-	"log"
+    "log"
+    "database/sql"
 
 	"github.com/graphql-go/handler"
-	"github.com/graphql-go/graphql"
+    "github.com/graphql-go/graphql"
+    _ "github.com/lib/pq"
 )
 
 func main() {
+    var err error
+    database.DBCon, err = sql.Open("postgres", "postgres://postgres@localhost:5432/postgres?sslmode=disable")
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	schemaConfig := graphql.SchemaConfig{
-		Query: graphql.NewObject(graphql.ObjectConfig{
-			Name: 	"RootQuery",
-			Fields: queries.GetRootFields(),
-		}),
-		Mutation: graphql.NewObject(graphql.ObjectConfig{
-			Name:	"RootMutation",
-			Fields: mutations.GetRootFields(),
-		}),
+		Query:      queries.QueryType,
+		Mutation:   mutations.MutationType,
 	}
 
 	schema, err := graphql.NewSchema(schemaConfig)

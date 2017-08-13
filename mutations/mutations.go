@@ -9,3 +9,8 @@ func GetRootFields() graphql.Fields {
 		"createUser": GetCreateUserMutation(),
 	}
 }
+
+var MutationType = graphql.NewObject(graphql.ObjectConfig{
+    Name:	"RootMutation",
+    Fields: GetRootFields(),
+});

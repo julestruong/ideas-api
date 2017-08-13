@@ -2,8 +2,9 @@ package mutations
 
 import (
 	"../types"
+    "../database"
 
-	"log"
+    "log"
 
 	"github.com/graphql-go/graphql"
 )
@@ -24,6 +25,8 @@ func GetCreateUserMutation() *graphql.Field {
 				Firstname: params.Args["firstname"].(string),
 				Lastname: params.Args["lastname"].(string),
 			}
+
+            database.InsertUser(user);
 
 			log.Printf("user has been created");
 
