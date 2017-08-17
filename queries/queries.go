@@ -9,3 +9,8 @@ func GetRootFields() graphql.Fields {
 		"user": GetUserQuery(),
 	}
 }
+
+var QueryType = graphql.NewObject(graphql.ObjectConfig{
+	Name:	"RootQuery",
+	Fields: GetRootFields(),
+});
