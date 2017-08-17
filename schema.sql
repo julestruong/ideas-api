@@ -15,3 +15,4 @@ WITH (
 );
 ALTER TABLE public."user"
   OWNER TO postgres;
+
