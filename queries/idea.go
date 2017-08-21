@@ -8,14 +8,14 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
-func GetUserQuery() *graphql.Field {
+func GetIdeaQuery() *graphql.Field {
 	return &graphql.Field{
-		Type: graphql.NewList(types.UserType),
+		Type: graphql.NewList(types.IdeaType),
 		Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-			log.Printf("[query] user\n")
-			var users []types.User
+			log.Printf("[query] idea\n")
+			var ideas []types.Idea
 
-			return users, nil 
+			return ideas, nil 
 		},
 	}
 }
