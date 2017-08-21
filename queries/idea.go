@@ -1,21 +1,47 @@
 package queries
 
 import (
+	"strconv"
+
+	"../database"
 	"../types"
 
 	"log"
-	
+
 	"github.com/graphql-go/graphql"
 )
 
+/**
+* GetIdeaQuery
+*
+ */
 func GetIdeaQuery() *graphql.Field {
 	return &graphql.Field{
-		Type: graphql.NewList(types.IdeaType),
+		Type: types.IdeaType,
+		Args: graphql.FieldConfigArgument{
+			"id": &graphql.ArgumentConfig{
+				Description: "Idea ID",
+				Type:        graphql.ID,
+			},
+			"email": &graphql.ArgumentConfig{
+				Description: "Idea email user",
+				Type:        graphql.String,
+			},
+		},
 		Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 			log.Printf("[query] idea\n")
-			var ideas []types.Idea
 
-			return ideas, nil 
+			i := params.Args["id"].(string)
+			email := params.Args["email"].(string)
+
+			id, err := strconv.Atoi(i)
+			if err != nil {
+				return nil, err
+			}
+
+			ideas := database.Select(database.Params{Id: id, Email: email})
+
+			return ideas, nil
 		},
 	}
 }
