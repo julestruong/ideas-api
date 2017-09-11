@@ -1,7 +1,11 @@
 # ideas-api
 Api Go Graphql for ideas
 
-** ROADMAP
+## GETTING STARTED
+
+`docker stack deploy -c stack.yml postgres`
+
+## ROADMAP
 
 - [ ] Model    User
 - [ ] Mutation Create User
