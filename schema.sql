@@ -1,17 +1,18 @@
--- Table: public."user"
+-- Table: public."idea"
 
--- DROP TABLE public."user";
+-- DROP TABLE public.idea;
 
-CREATE TABLE public."user"
+CREATE TABLE public.idea
 (
   id SERIAL PRIMARY KEY,
   email character varying,
-  firstname character varying,
-  lastname character varying,
-  CONSTRAINT user_email_key UNIQUE (email)
+  body character varying,
+  created_at timestamp DEFAULT NOW(), 
+  CONSTRAINT idea_user_email_key UNIQUE (email)
 )
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE public."user"
+ALTER TABLE public.idea
   OWNER TO postgres;
+
