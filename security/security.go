@@ -8,6 +8,7 @@ import (
     "os"
 )
 
+//TODO should be moved elsewhere
 type User struct {
     Azp string `json:"azp"`
     Aud string `json:"aud"`
@@ -18,6 +19,7 @@ type User struct {
     Exp string `json:"exp"`
     Alg string `json:"alg"`
     Kid string `json:"kid"`
+
     // Name string `json:"name"`
     // GivenName string `json:"given_name"`
     // FamilyName string `json:"family_name"`
@@ -28,6 +30,7 @@ type User struct {
     // Gender string `json:"gender"`
 }
 
+//TODO should be moved elsewhere
 type Config struct {
     Cid string `json:"cid"`
 }
@@ -48,7 +51,6 @@ func Handle(next http.Handler) http.Handler {
             return
         }
 
-        
         tokenString = tokenString[7:]
         log.Printf("tokenstring found %v", tokenString)
         
@@ -66,7 +68,12 @@ func Handle(next http.Handler) http.Handler {
         
         if (checkUserAudEqualsClientId(user)) {
             next.ServeHTTP(w, r)
+
+            return
         }
+    
+        log.Printf("User %v", user)
+        http.Error(w, "", http.StatusBadRequest)
 	})
 }
 

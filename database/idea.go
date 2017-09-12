@@ -3,7 +3,8 @@ package database
 import (
 	"../types"
 
-	"log"
+    "time"
+    "log"
 )
 
 type Params struct {
@@ -16,9 +17,6 @@ func Select(params Params) []types.Idea {
 
 	statement, err := DBCon.Prepare(`
     SELECT id, body, email, created_at FROM public.idea
-    WHERE 1 = 1
-    AND email = ?
-    AND id = ? 
     `)
 
 	if err != nil {
@@ -27,7 +25,7 @@ func Select(params Params) []types.Idea {
 
 	defer statement.Close()
 
-	rows, err := statement.Query(params.Email, params.Id)
+	rows, err := statement.Query(/*params.Email, params.Id*/)
 
 	if err != nil {
 		log.Fatal(err)
@@ -37,19 +35,35 @@ func Select(params Params) []types.Idea {
 
 	for rows.Next() {
 		var id int
-		var body string
+        var body string
+        var email string 
+        var created_at time.Time
 
-		err := rows.Scan(&id, &body)
+        log.Printf("Reading row %v", rows)
+
+		err := rows.Scan(&id, &body, &email, &created_at)
 		if err != nil {
 			log.Fatal(err)
-		}
+        }
+        
+        log.Printf("Row value : (%d, %s, %s, %v)", id, body, email, created_at)
 
-		ideas = append(ideas, types.Idea{ID: id, Body: body})
-	}
+        idea := types.Idea{
+            ID: id, 
+            Body: body,
+            Email: email,
+            CreatedAt: created_at,
+        }
+
+		ideas = append(ideas, idea)
+    }
+    
 	err = rows.Err()
 	if err != nil {
 		log.Fatal(err)
-	}
+    }
+    
+    log.Printf("Found %v rows", len(ideas))
 
 	return ideas
 }
