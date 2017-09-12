@@ -16,6 +16,7 @@ import (
 )
 
 func main() {
+
     var err error
     database.DBCon, err = sql.Open("postgres", "postgres://postgres@localhost:5432/postgres?sslmode=disable")
 
@@ -40,7 +41,7 @@ func main() {
 	})
 
 	http.Handle("/", security.Handle(httpHandler))
-	log.Print("ready: listening...\n")
+	log.Printf("ready: listening...\n")
 
 	http.ListenAndServe(":8383", nil)
 }

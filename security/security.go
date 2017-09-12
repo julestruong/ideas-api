@@ -1,10 +1,11 @@
 package security
 
 import (
-	"fmt"
 	"log"
     "net/http"
     "encoding/json"
+    "io/ioutil"
+    "os"
 )
 
 type User struct {
@@ -27,7 +28,9 @@ type User struct {
     // Gender string `json:"gender"`
 }
 
-const CLIENTID = "646759497501-g0rqsvkcfpn92ugit4qhadkjpeausq11.apps.googleusercontent.com"
+type Config struct {
+    Cid string `json:"cid"`
+}
 
 // Handle security middleware aims to implement a JWT authentication.
 func Handle(next http.Handler) http.Handler {
@@ -35,18 +38,21 @@ func Handle(next http.Handler) http.Handler {
 
         url := "https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=";
         
-		tokenString := r.Header.Get("Authorization")[7:]
+        tokenString := r.Header.Get("Authorization")
+        
 
-        fmt.Println("No token string")
-        // if tokenString == nil {
+        if tokenString == "" {
+            log.Printf("No token string")
+            http.Error(w, "No token string", http.StatusBadRequest)
+    
+            return
+        }
 
-        //     return
-        // }
-
-        log.Printf("tokenstring %v", tokenString)
+        
+        tokenString = tokenString[7:]
+        log.Printf("tokenstring found %v", tokenString)
         
         url = url + tokenString
-
         resp, err := http.Get(url)
 
         defer resp.Body.Close()
@@ -54,24 +60,32 @@ func Handle(next http.Handler) http.Handler {
         err = json.NewDecoder(resp.Body).Decode(&user)
 
 		if err != nil {
-            //TODO 
-            fmt.Println("%v", err)
-            // fmt.Printf("%T\n%s\n%#v\n",err, err, err)
-            // switch v := err.(type){
-            // case *json.SyntaxError:
-            //     fmt.Println(string(resp.Body[v.Offset-40:v.Offset]))
-            // }
-            
+            log.Printf("Erreur found in json response %v", err)
 			return
         }
         
-        fmt.Println("%v", user.Aud)
-
-        if (user.Aud != CLIENTID) {
-            fmt.Println("CLIENT ID WRONG")
-            return 
+        if (checkUserAudEqualsClientId(user)) {
+            next.ServeHTTP(w, r)
         }
-        
-        next.ServeHTTP(w, r)
 	})
+}
+
+/**
+* 
+*
+**/
+func checkUserAudEqualsClientId(user User) bool {
+    file, e := ioutil.ReadFile("./config/config.json")
+
+    if e != nil {
+        log.Printf("File error! %v", e)    
+        os.Exit(1)
+    }
+
+    var config Config
+    json.Unmarshal(file, &config)
+
+    log.Printf("Comparison user Aud (%s) == Config ClientId (%s)", user.Aud, config.Cid)
+
+    return user.Aud == config.Cid
 }
