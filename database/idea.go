@@ -15,6 +15,8 @@ type Params struct {
 func Select(params Params) []types.Idea {
 	var ideas []types.Idea
 
+    log.Printf("SQL : SELECT id, body, email, created_at FROM public.idea")
+    
 	statement, err := DBCon.Prepare(`
     SELECT id, body, email, created_at FROM public.idea
     `)

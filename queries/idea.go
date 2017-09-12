@@ -12,12 +12,12 @@ import (
 )
 
 /**
-* GetIdeaQuery
+* GetIdeasQuery
 *
  */
-func GetIdeaQuery() *graphql.Field {
+func GetIdeasQuery() *graphql.Field {
 	return &graphql.Field{
-		Type: types.IdeaType,
+		Type: graphql.NewList(types.IdeaType),
 		Args: graphql.FieldConfigArgument{
 			"id": &graphql.ArgumentConfig{
 				Description: "Idea ID",
@@ -29,18 +29,21 @@ func GetIdeaQuery() *graphql.Field {
 			},
 		},
 		Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-			log.Printf("[query] idea\n")
+            log.Printf("[query] idea\n")
+            
+            var ideas []types.Idea
 
 			i := params.Args["id"].(string)
 			email := params.Args["email"].(string)
 
 			id, err := strconv.Atoi(i)
 			if err != nil {
-				return nil, err
+				return "", err
 			}
 
-			ideas := database.Select(database.Params{Id: id, Email: email})
+			ideas = database.Select(database.Params{Id: id, Email: email})
 
+            log.Printf("%v", ideas)
 			return ideas, nil
 		},
 	}
