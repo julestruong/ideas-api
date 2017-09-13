@@ -7,13 +7,12 @@ Api Go Graphql for ideas
 
 ## ROADMAP
 
-- [ ] Model    User
-- [ ] Mutation Create User
-- [ ] Mutation Delete User
-- [ ] Query    Get    User
-- [ ] Model    Idea
-- [ ] Mutation Create Ideas
-- [ ] Mutation Delete Ideas
-- [ ] Query    Get    Ideas
+- [x] Model    Idea
+- [x] Mutation Create Ideas
+- [x] Query    Get    Ideas
+- [ ] Query    Update current Idea
+- [ ] Model    Vote
+- [ ] Possibility to vote for an idea of the week
+- [ ] Query Get ideas (add vote)
 - [ ] Test Unit
 - [ ] Security 
