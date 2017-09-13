@@ -6,21 +6,31 @@ import (
     "time"
     "log"
     "strings"
+    "database/sql"
 )
 
-type Params struct {
+type QueryParams struct {
 	Email string
-	Id    int
+	Week  string
 }
 
-func Select(params Params) []types.Idea {
+//TODO REWORK
+func Select(params QueryParams) []types.Idea {
 	var ideas []types.Idea
+    var query string
 
-    log.Printf("SQL : SELECT id, body, email, created_at FROM public.idea")
-
-	statement, err := DBCon.Prepare(`
-    SELECT id, body, email, created_at FROM public.idea
-    `)
+    query = "SELECT id, body, email, week, created_at FROM public.idea WHERE 1=1"
+    
+    if params.Email != "" {
+        query += " AND email = $1 "
+    }
+    
+    if params.Week != "" {
+        query += " AND week = $2 "
+    }
+    
+    log.Printf("SQL : %s", query)
+	statement, err := DBCon.Prepare(query)
 
 	if err != nil {
 		log.Fatal(err)
@@ -28,7 +38,17 @@ func Select(params Params) []types.Idea {
 
 	defer statement.Close()
 
-	rows, err := statement.Query(/*params.Email, params.Id*/)
+    var rows *sql.Rows
+
+    if params.Email != "" && params.Week != "" {
+        rows, err = statement.Query(params.Email, params.Week)
+    } else if (params.Email != "") {
+        rows, err = statement.Query(params.Email)
+    } else if (params.Week != "") {
+        rows, err = statement.Query(params.Week)
+    } else {        
+        rows, err = statement.Query()
+    }
 
 	if err != nil {
 		log.Fatal(err)
@@ -41,20 +61,22 @@ func Select(params Params) []types.Idea {
         var body string
         var email string 
         var created_at time.Time
+        var week string
 
         log.Printf("Reading row %v", rows)
 
-		err := rows.Scan(&id, &body, &email, &created_at)
+		err := rows.Scan(&id, &body, &email, &week, &created_at)
 		if err != nil {
 			log.Fatal(err)
         }
         
-        log.Printf("Row value : (%d, %s, %s, %v)", id, body, email, created_at)
+        log.Printf("Row value : (%d, %s, %s, %s, %v)", id, body, email, week, created_at)
 
         idea := types.Idea{
             ID: id, 
             Body: body,
             Email: email,
+            Week: week,
             CreatedAt: created_at,
         }
 
