@@ -7,7 +7,7 @@ CREATE TABLE public.idea
   id SERIAL PRIMARY KEY,
   email character varying NOT NULL,
   body character varying NOT NULL,
-  week integer NOT NULL,
+  week character varying NOT NULL,
   created_at timestamp NOT NULL DEFAULT NOW(), 
   CONSTRAINT idea_user_email_week_key UNIQUE (email, week)
 )

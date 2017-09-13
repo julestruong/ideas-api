@@ -1,10 +1,11 @@
 package database
 
 import (
-	"../types"
+    "../types"
 
     "time"
     "log"
+    "strings"
 )
 
 type Params struct {
@@ -16,7 +17,7 @@ func Select(params Params) []types.Idea {
 	var ideas []types.Idea
 
     log.Printf("SQL : SELECT id, body, email, created_at FROM public.idea")
-    
+
 	statement, err := DBCon.Prepare(`
     SELECT id, body, email, created_at FROM public.idea
     `)
@@ -73,13 +74,17 @@ func Select(params Params) []types.Idea {
 func InsertIdea(idea *types.Idea) error {
 	var id int
 	err := DBCon.QueryRow(`
-		INSERT INTO public.idea(body, email)
-		VALUES ($1, $2)
+		INSERT INTO public.idea(body, email, week)
+		VALUES ($1, $2, $3)
 		RETURNING id
-    `, idea.Body, idea.Email).Scan(&id)
+    `, idea.Body, idea.Email, idea.Week).Scan(&id)
 
 	if err != nil {
-		log.Fatal(err)
+        if strings.Contains(err.Error(), "idea_user_email_week_key") {
+            log.Printf("Error, user already post an idea this week")
+        } else {
+            log.Fatal(err)
+        }
 		return err
 	}
 

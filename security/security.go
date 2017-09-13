@@ -9,7 +9,7 @@ import (
 )
 
 //TODO should be moved elsewhere
-type User struct {
+type UserData struct {
     Azp string `json:"azp"`
     Aud string `json:"aud"`
     Sub string `json:"sub"`
@@ -19,7 +19,9 @@ type User struct {
     Exp string `json:"exp"`
     Alg string `json:"alg"`
     Kid string `json:"kid"`
-
+    Email string `json:"email"`
+    EmailVerified string `json:"email_verified"`
+    
     // Name string `json:"name"`
     // GivenName string `json:"given_name"`
     // FamilyName string `json:"family_name"`
@@ -35,6 +37,8 @@ type Config struct {
     Cid string `json:"cid"`
 }
 
+var User UserData
+
 // Handle security middleware aims to implement a JWT authentication.
 func Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +46,6 @@ func Handle(next http.Handler) http.Handler {
         url := "https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=";
         
         tokenString := r.Header.Get("Authorization")
-        
 
         if tokenString == "" {
             log.Printf("No token string")
@@ -58,21 +61,20 @@ func Handle(next http.Handler) http.Handler {
         resp, err := http.Get(url)
 
         defer resp.Body.Close()
-        var user User
-        err = json.NewDecoder(resp.Body).Decode(&user)
+        err = json.NewDecoder(resp.Body).Decode(&User)
 
 		if err != nil {
             log.Printf("Erreur found in json response %v", err)
 			return
         }
         
-        if (checkUserAudEqualsClientId(user)) {
+        if (checkUserAudEqualsClientId()) {
             next.ServeHTTP(w, r)
 
             return
         }
     
-        log.Printf("User %v", user)
+        log.Printf("User %v", User)
         http.Error(w, "", http.StatusBadRequest)
 	})
 }
@@ -81,7 +83,7 @@ func Handle(next http.Handler) http.Handler {
 * 
 *
 **/
-func checkUserAudEqualsClientId(user User) bool {
+func checkUserAudEqualsClientId() bool {
     file, e := ioutil.ReadFile("./config/config.json")
 
     if e != nil {
@@ -92,7 +94,7 @@ func checkUserAudEqualsClientId(user User) bool {
     var config Config
     json.Unmarshal(file, &config)
 
-    log.Printf("Comparison user Aud (%s) == Config ClientId (%s)", user.Aud, config.Cid)
+    log.Printf("Comparison user Aud (%s) == Config ClientId (%s)", User.Aud, config.Cid)
 
-    return user.Aud == config.Cid
+    return User.Aud == config.Cid
 }
