@@ -48,21 +48,28 @@ func GetUpdateIdeaMutation() *graphql.Field {
     return &graphql.Field{
         Type: types.IdeaType,
         Args: graphql.FieldConfigArgument{
-            "id": &graphql.ArgumentConfig{
-				Type: graphql.NewNonNull(graphql.Int),
-			},
 			"body": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(graphql.String),
 			},
         },
         Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-
-            id := params.Args["id"].(int)
+            now := time.Now()
+            year, week := now.ISOWeek()
             body := params.Args["body"].(string)
 
-            count := database.UpdateIdea(id, body)
+            queryParams := database.QueryParams{
+                Body: body,
+                Week: strconv.Itoa(year) + strconv.Itoa(week),
+                Email: security.User.Email, 
+            }
 
-            return count, nil
+            idea, err := database.UpdateIdea(queryParams)
+
+            if err != nil {
+                return nil, err
+            }
+
+            return idea, nil
         },
     }
 }

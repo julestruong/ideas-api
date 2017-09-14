@@ -7,9 +7,11 @@ import (
     "log"
     "strings"
     "database/sql"
+    "errors"
 )
 
 type QueryParams struct {
+    Body  string
 	Email string
 	Week  string
 }
@@ -116,14 +118,18 @@ func InsertIdea(idea *types.Idea) error {
 	return nil
 }
 
-func UpdateIdea(id int, body string) int64 {
-	res, err := DBCon.Exec(`
-        UPDATE public.idea
-        SET body = $1
-        WHERE id = $2
-    `, body, id)
+func UpdateIdea(params QueryParams) (types.Idea, error) {
 
-	if err != nil {
+    sql := `UPDATE public.idea
+    SET body = $1
+    WHERE email = $2
+    AND week = $3`
+
+	res, err := DBCon.Exec(sql, params.Body, params.Email, params.Week)
+
+    log.Printf("SQL %v (%s %s %s)", sql, params.Body, params.Email, params.Week)
+    
+    if err != nil {
 		panic(err)
 	}
 
@@ -132,9 +138,23 @@ func UpdateIdea(id int, body string) int64 {
 		panic(err)
 	}
 
-	if count > 0 {
-		log.Print("idea updated in database")
-	}
+    var idea types.Idea 
+    
+    if count > 1 {
+        panic("should not update more than one idea")
+    }
 
-	return count
+	if count > 0 {
+        log.Printf("%d idea updated in database", count)
+        
+        idea = Select(params)[0]
+        log.Printf("%v", idea)
+
+        return idea, nil
+    }
+    
+
+    error := errors.New("Nothing updated")
+
+	return idea, error 
 }
