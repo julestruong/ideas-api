@@ -25,11 +25,16 @@ func Select(params QueryParams) []types.Idea {
     
     if params.Email != "" {
         query += " AND email = $1 "
+
+        if params.Week != "" {
+            query += " AND week = $2 "
+        }
+    } else {
+        if params.Week != "" {
+            query += " AND week = $1 "
+        }
     }
     
-    if params.Week != "" {
-        query += " AND week = $2 "
-    }
     
     log.Printf("SQL : %s", query)
 	statement, err := DBCon.Prepare(query)
