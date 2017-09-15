@@ -31,7 +31,7 @@ func GetIdeasQuery() *graphql.Field {
             
             var ideas []types.Idea
             
-            var queryParams database.QueryParams
+            var queryParams database.IdeaQueryParams
             if params.Args["week"] != nil {
                 queryParams.Week = params.Args["week"].(string) 
             }

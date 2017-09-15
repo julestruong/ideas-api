@@ -2,6 +2,7 @@ package mutations
 
 import (
     "../security"
+    "../database"
 
     "log"
 
@@ -17,9 +18,21 @@ func GetVoteIdeaMutation() *graphql.Field {
             },
         },
         Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+            
+            log.Printf("calling vote 1")
+            var queryParams database.VoteQueryParams
+            queryParams = database.VoteQueryParams{
+                Id: params.Args["id"].(int),
+                Email: security.User.Email,
+            }
+            log.Printf("calling vote")
+            voteOk, err := database.Vote(queryParams);
+            if err != nil {
+                log.Printf("err %v", err)
+            }
             log.Printf("user %s voted id %d", security.User.Email, params.Args["id"].(int))
 
-            return true, nil
+            return voteOk, err
         },
     }
 }

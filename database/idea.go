@@ -11,14 +11,14 @@ import (
     "encoding/json"
 )
 
-type QueryParams struct {
+type IdeaQueryParams struct {
     Body  string
 	Email string
 	Week  string
 }
 
 //TODO REWORK
-func Select(params QueryParams) []types.Idea {
+func Select(params IdeaQueryParams) []types.Idea {
 	var ideas []types.Idea
     var query string
 
@@ -136,7 +136,7 @@ func InsertIdea(idea *types.Idea) error {
 	return nil
 }
 
-func UpdateIdea(params QueryParams) (types.Idea, error) {
+func UpdateIdea(params IdeaQueryParams) (types.Idea, error) {
 
     sql := `UPDATE public.idea
     SET body = $1

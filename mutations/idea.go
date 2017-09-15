@@ -57,7 +57,7 @@ func GetUpdateIdeaMutation() *graphql.Field {
             year, week := now.ISOWeek()
             body := params.Args["body"].(string)
 
-            queryParams := database.QueryParams{
+            queryParams := database.IdeaQueryParams{
                 Body: body,
                 Week: strconv.Itoa(year) + strconv.Itoa(week),
                 Email: security.User.Email, 
