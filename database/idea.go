@@ -8,6 +8,7 @@ import (
     "strings"
     "database/sql"
     "errors"
+    "encoding/json"
 )
 
 type QueryParams struct {
@@ -21,7 +22,7 @@ func Select(params QueryParams) []types.Idea {
 	var ideas []types.Idea
     var query string
 
-    query = "SELECT id, body, email, week, created_at FROM public.idea WHERE 1=1"
+    query = "SELECT id, body, email, week, json_array_length(votes) votes, votes, created_at FROM public.idea WHERE 1=1"
     
     if params.Email != "" {
         query += " AND email = $1 "
@@ -34,7 +35,6 @@ func Select(params QueryParams) []types.Idea {
             query += " AND week = $1 "
         }
     }
-    
     
     log.Printf("SQL : %s", query)
 	statement, err := DBCon.Prepare(query)
@@ -68,22 +68,35 @@ func Select(params QueryParams) []types.Idea {
         var body string
         var email string 
         var created_at time.Time
+        var votes int
+        var voters string
         var week string
 
         log.Printf("Reading row %v", rows)
 
-		err := rows.Scan(&id, &body, &email, &week, &created_at)
+		err := rows.Scan(&id, &body, &email, &week, &votes, &voters, &created_at)
 		if err != nil {
 			log.Fatal(err)
         }
         
-        log.Printf("Row value : (%d, %s, %s, %s, %v)", id, body, email, week, created_at)
+        log.Printf("Row value : (%d, %s, %s, %s,%d, %v)", id, body, email, week, votes, voters, created_at)
+
+        log.Printf("voters %v", voters)
+        var votersArray []string
+        err = json.Unmarshal([]byte(voters), &votersArray)
+        if err != nil {
+            log.Printf("Error voters json %v", err)
+        }
+
+        log.Printf("voters %v", votersArray)
 
         idea := types.Idea{
             ID: id, 
             Body: body,
             Email: email,
             Week: week,
+            Votes: votes,
+            Voters: votersArray,
             CreatedAt: created_at,
         }
 
