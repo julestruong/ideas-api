@@ -8,6 +8,7 @@ CREATE TABLE public.idea
   email character varying NOT NULL,
   body character varying NOT NULL,
   week character varying NOT NULL,
+  votes json NOT NULL DEFAULT '{}',
   created_at timestamp NOT NULL DEFAULT NOW(), 
   CONSTRAINT idea_user_email_week_key UNIQUE (email, week)
 )

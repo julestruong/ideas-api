@@ -8,6 +8,7 @@ func GetRootFields() graphql.Fields {
 	return graphql.Fields{
         "createIdea": GetCreateIdeaMutation(),
         "updateIdea": GetUpdateIdeaMutation(),
+        "voteIdea":   GetVoteIdeaMutation(),
 	}
 }
 
