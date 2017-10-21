@@ -3,7 +3,7 @@ package main
 import (
 	"./queries"
 	"./mutations"
-    "./security"
+    // "./security"
     "./database"
 
 	"net/http"
@@ -13,6 +13,8 @@ import (
 
 	"github.com/graphql-go/handler"
     "github.com/graphql-go/graphql"
+    "github.com/mnmtanish/go-graphiql"
+
     _ "github.com/lib/pq"
 )
 
@@ -61,7 +63,9 @@ func main() {
 		Pretty: true,
 	})
 
-	http.Handle("/", security.Handle(httpHandler))
+	http.HandleFunc("/graphiql", graphiql.ServeGraphiQL)
+	//http.Handle("/api", security.Handle(httpHandler))
+	http.Handle("/api", httpHandler)
 	log.Printf("ready: listening...\n")
 
 	http.ListenAndServe(":8383", nil)

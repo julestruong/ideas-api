@@ -3,7 +3,7 @@ Api Go Graphql for ideas
 
 ## GETTING STARTED
 
-`docker stack deploy -c stack.yml postgres`
+`docker-compose up`
 
 ## ROADMAP
 
