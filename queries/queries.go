@@ -6,7 +6,7 @@ import (
 
 func GetRootFields() graphql.Fields {
 	return graphql.Fields{
-		"idea": GetIdeaQuery(),
+		"ideas": GetIdeasQuery(),
 	}
 }
 

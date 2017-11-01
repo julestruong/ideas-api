@@ -3,25 +3,49 @@ package main
 import (
 	"./queries"
 	"./mutations"
-    "./security"
+    // "./security"
     "./database"
 
 	"net/http"
     "log"
     "database/sql"
+    "fmt"
 
 	"github.com/graphql-go/handler"
     "github.com/graphql-go/graphql"
+    "github.com/mnmtanish/go-graphiql"
+
     _ "github.com/lib/pq"
 )
 
+const (  
+    host     = "localhost"
+    port     = 5432
+    user     = "postgres"
+    password = "example"
+    dbname   = "postgres"
+)
+
 func main() {
+
     var err error
-    database.DBCon, err = sql.Open("postgres", "postgres://postgres@localhost:5432/postgres?sslmode=disable")
+
+    postgreSqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+        "password=%s dbname=%s sslmode=disable",
+        host, port, user, password, dbname)
+
+    database.DBCon, err = sql.Open("postgres", postgreSqlInfo)
 
 	if err != nil {
-		log.Fatal(err)
-	}
+        panic(err)
+    }
+
+    defer database.DBCon.Close()
+    err = database.DBCon.Ping()
+
+    if err != nil {
+        panic(err)
+    }
 
 	schemaConfig := graphql.SchemaConfig{
 		Query:      queries.QueryType,
@@ -39,8 +63,10 @@ func main() {
 		Pretty: true,
 	})
 
-	http.Handle("/", security.Handle(httpHandler))
-	log.Print("ready: listening...\n")
+	http.HandleFunc("/graphiql", graphiql.ServeGraphiQL)
+	//http.Handle("/api", security.Handle(httpHandler))
+	http.Handle("/api", httpHandler)
+	log.Printf("ready: listening...\n")
 
 	http.ListenAndServe(":8383", nil)
 }
