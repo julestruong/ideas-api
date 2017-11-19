@@ -22,7 +22,7 @@ func Select(params IdeaQueryParams) []types.Idea {
 	var ideas []types.Idea
     var query string
 
-    query = "SELECT id, body, email, week, json_array_length(votes) votes, votes, created_at FROM public.idea WHERE 1=1"
+    query = "SELECT id, body, email, week, jsonb_array_length(votes) votes, votes, created_at FROM public.idea WHERE 1=1"
     
     if params.Email != "" {
         query += " AND email = $1 "
