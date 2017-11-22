@@ -13,7 +13,6 @@ import (
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/handler"
-	"github.com/mnmtanish/go-graphiql"
 	"github.com/rs/cors"
 
 	_ "github.com/lib/pq"
@@ -31,11 +30,11 @@ func main() {
 
 	var err error
 
-	postgreSqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+	postgreSQLInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 
-	database.DBCon, err = sql.Open("postgres", postgreSqlInfo)
+	database.DBCon, err = sql.Open("postgres", postgreSQLInfo)
 
 	if err != nil {
 		panic(err)
@@ -62,11 +61,11 @@ func main() {
 	corsHandler := cors.Default()
 
 	httpHandler := handler.New(&handler.Config{
-		Schema: &schema,
-		Pretty: true,
+		Schema:   &schema,
+		Pretty:   true,
+		GraphiQL: true,
 	})
 
-	http.HandleFunc("/graphiql", graphiql.ServeGraphiQL)
 	//http.Handle("/api", security.Handle(httpHandler))
 	http.Handle("/api", corsHandler.Handler(httpHandler))
 	log.Printf("ready: listening...\n")
