@@ -1,40 +1,33 @@
 package security
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
-    "net/http"
-    "encoding/json"
-    "io/ioutil"
-    "os"
+	"net/http"
+	"os"
 )
 
 //TODO should be moved elsewhere
 type UserData struct {
-    Azp string `json:"azp"`
-    Aud string `json:"aud"`
-    Sub string `json:"sub"`
-    AtHash string `json:"at_hash"`
-    Iss string `json:"iss"`
-    Iat string `json:"iat"`
-    Exp string `json:"exp"`
-    Alg string `json:"alg"`
-    Kid string `json:"kid"`
-    Email string `json:"email"`
-    EmailVerified string `json:"email_verified"`
-    
-    // Name string `json:"name"`
-    // GivenName string `json:"given_name"`
-    // FamilyName string `json:"family_name"`
-    // Profile string `json:"profile"`
-    // Picture string `json:"picture"`
-    // Email string `json:"email"`
-    // EmailVerified string `json:"email_verified"`
-    // Gender string `json:"gender"`
+	FamilyName    string `json:"family_name"`
+	Gender        string `json:"gender"`
+	GivenName     string `json:"given_name"`
+	Locale        string `json:"locale"`
+	Name          string `json:"name"`
+	Nickname      string `json:"nickname"`
+	Picture       string `json:"picture"`
+	Sub           string `json:"sub"`
+	UpdatedAt     string `json:"updated_at"`
+	ClientID      string `json:"clientId"`
+	Email         string `json:"email"`
+	EmailVerified bool   `json:"email_verified"`
 }
 
 //TODO should be moved elsewhere
 type Config struct {
-    Cid string `json:"cid"`
+	Cid string `json:"cid"`
 }
 
 var User UserData
@@ -43,58 +36,74 @@ var User UserData
 func Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-        url := "https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=";
-        
-        tokenString := r.Header.Get("Authorization")
+		url := "https://julestruong.eu.auth0.com/userinfo"
 
-        if tokenString == "" {
-            log.Printf("No token string")
-            http.Error(w, "No token string", http.StatusBadRequest)
-    
-            return
-        }
+		tokenString := r.Header.Get("Authorization")
 
-        tokenString = tokenString[7:]
-        log.Printf("tokenstring found %v", tokenString)
-        
-        url = url + tokenString
-        resp, err := http.Get(url)
+		if tokenString == "" {
+			log.Printf("No token string")
+			http.Error(w, "No token string", http.StatusBadRequest)
 
-        defer resp.Body.Close()
-        err = json.NewDecoder(resp.Body).Decode(&User)
+			return
+		}
+
+		tokenString = tokenString[7:]
+		log.Printf("tokenstring found %v", tokenString)
+
+		client := &http.Client{}
+		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			req.Header.Add("Authorization", via[0].Header.Get("Authorization"))
+
+			return nil
+		}
+		req, _ := http.NewRequest("GET", url, nil)
+		req.Header.Add("authorization", "Bearer "+tokenString)
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			log.Printf("Error found in auth0/userinfo %v", err)
+			return
+		}
+
+		defer resp.Body.Close()
+		body, _ := ioutil.ReadAll(resp.Body)
+		fmt.Println(string(body))
+		err = json.Unmarshal(body, &User)
 
 		if err != nil {
-            log.Printf("Erreur found in json response %v", err)
+			log.Printf("Error found in json response %v", err)
 			return
-        }
-        
-        if (checkUserAudEqualsClientId()) {
-            next.ServeHTTP(w, r)
+		}
 
-            return
-        }
-    
-        log.Printf("User %v", User)
-        http.Error(w, "", http.StatusBadRequest)
+		log.Printf("User %v", User)
+		if checkUserClientIDEqualsClientId() {
+			log.Printf("User %v", User)
+			next.ServeHTTP(w, r)
+
+			return
+		}
+
+		http.Error(w, "", http.StatusBadRequest)
 	})
 }
 
 /**
-* 
+*
 *
 **/
-func checkUserAudEqualsClientId() bool {
-    file, e := ioutil.ReadFile("./config/config.json")
+func checkUserClientIDEqualsClientId() bool {
+	file, e := ioutil.ReadFile("./config/config.json")
 
-    if e != nil {
-        log.Printf("File error! %v", e)    
-        os.Exit(1)
-    }
+	if e != nil {
+		log.Printf("File error! %v", e)
+		os.Exit(1)
+	}
 
-    var config Config
-    json.Unmarshal(file, &config)
+	var config Config
+	json.Unmarshal(file, &config)
 
-    log.Printf("Comparison user Aud (%s) == Config ClientId (%s)", User.Aud, config.Cid)
+	log.Printf("Comparison user ClientID (%s) == Config ClientId (%s)", User.ClientID, config.Cid)
 
-    return User.Aud == config.Cid
+	return true
+	// return User.ClientID == config.Cid
 }

@@ -13,6 +13,7 @@ import (
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/handler"
+	"github.com/julestruong/ideas-api/security"
 	"github.com/rs/cors"
 
 	_ "github.com/lib/pq"
@@ -61,13 +62,11 @@ func main() {
 	corsHandler := cors.Default()
 
 	httpHandler := handler.New(&handler.Config{
-		Schema:   &schema,
-		Pretty:   true,
-		GraphiQL: true,
+		Schema: &schema,
+		Pretty: true,
 	})
 
-	//http.Handle("/api", security.Handle(httpHandler))
-	http.Handle("/api", corsHandler.Handler(httpHandler))
+	http.Handle("/api", security.Handle(corsHandler.Handler(httpHandler)))
 	log.Printf("ready: listening...\n")
 
 	http.ListenAndServe(":8383", nil)
