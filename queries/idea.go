@@ -1,8 +1,6 @@
 package queries
 
 import (
-	"strconv"
-
 	"../database"
 	"../types"
 
@@ -12,16 +10,16 @@ import (
 )
 
 /**
-* GetIdeaQuery
+* GetIdeasQuery
 *
  */
-func GetIdeaQuery() *graphql.Field {
+func GetIdeasQuery() *graphql.Field {
 	return &graphql.Field{
-		Type: types.IdeaType,
+		Type: graphql.NewList(types.IdeaType),
 		Args: graphql.FieldConfigArgument{
-			"id": &graphql.ArgumentConfig{
-				Description: "Idea ID",
-				Type:        graphql.ID,
+			"week": &graphql.ArgumentConfig{
+				Description: "Idea Week",
+				Type:        graphql.String,
 			},
 			"email": &graphql.ArgumentConfig{
 				Description: "Idea email user",
@@ -29,18 +27,22 @@ func GetIdeaQuery() *graphql.Field {
 			},
 		},
 		Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-			log.Printf("[query] idea\n")
+            log.Printf("[query] idea\n")
+            
+            var ideas []types.Idea
+            
+            var queryParams database.IdeaQueryParams
+            if params.Args["week"] != nil {
+                queryParams.Week = params.Args["week"].(string) 
+            }
+            
+            if params.Args["email"] != nil {
+                queryParams.Email = params.Args["email"].(string) 
+            }
 
-			i := params.Args["id"].(string)
-			email := params.Args["email"].(string)
+			ideas = database.Select(queryParams)
 
-			id, err := strconv.Atoi(i)
-			if err != nil {
-				return nil, err
-			}
-
-			ideas := database.Select(database.Params{Id: id, Email: email})
-
+            log.Printf("%v", ideas)
 			return ideas, nil
 		},
 	}

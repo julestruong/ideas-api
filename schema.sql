@@ -5,10 +5,12 @@
 CREATE TABLE public.idea
 (
   id SERIAL PRIMARY KEY,
-  email character varying,
-  body character varying,
-  created_at timestamp DEFAULT NOW(), 
-  CONSTRAINT idea_user_email_key UNIQUE (email)
+  email character varying NOT NULL,
+  body character varying NOT NULL,
+  week character varying NOT NULL,
+  votes jsonb NOT NULL DEFAULT '[]',
+  created_at timestamp NOT NULL DEFAULT NOW(), 
+  CONSTRAINT idea_user_email_week_key UNIQUE (email, week)
 )
 WITH (
   OIDS=FALSE

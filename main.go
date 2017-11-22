@@ -1,31 +1,55 @@
-package main 
+package main
 
 import (
-	"./queries"
+	"./database"
 	"./mutations"
-    "./security"
-    "./database"
+	"./queries"
 
+	"database/sql"
+	"fmt"
+	"log"
 	"net/http"
-    "log"
-    "database/sql"
 
+	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/handler"
-    "github.com/graphql-go/graphql"
-    _ "github.com/lib/pq"
+	"github.com/julestruong/ideas-api/security"
+	"github.com/rs/cors"
+
+	_ "github.com/lib/pq"
+)
+
+const (
+	host     = "localhost"
+	port     = 5432
+	user     = "postgres"
+	password = "example"
+	dbname   = "postgres"
 )
 
 func main() {
-    var err error
-    database.DBCon, err = sql.Open("postgres", "postgres://postgres@localhost:5432/postgres?sslmode=disable")
+
+	var err error
+
+	postgreSQLInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+
+	database.DBCon, err = sql.Open("postgres", postgreSQLInfo)
 
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
+	}
+
+	defer database.DBCon.Close()
+	err = database.DBCon.Ping()
+
+	if err != nil {
+		panic(err)
 	}
 
 	schemaConfig := graphql.SchemaConfig{
-		Query:      queries.QueryType,
-		Mutation:   mutations.MutationType,
+		Query:    queries.QueryType,
+		Mutation: mutations.MutationType,
 	}
 
 	schema, err := graphql.NewSchema(schemaConfig)
@@ -39,8 +63,15 @@ func main() {
 		Pretty: true,
 	})
 
-	http.Handle("/", security.Handle(httpHandler))
-	log.Print("ready: listening...\n")
+	corsHandler := cors.New(cors.Options{
+		AllowCredentials: true,
+		AllowedMethods:   []string{"GET", "POST", "DELETE"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		Debug:            true,
+	})
+
+	http.Handle("/api", corsHandler.Handler(security.Handle(httpHandler)))
+	log.Printf("ready: listening...\n")
 
 	http.ListenAndServe(":8383", nil)
 }

@@ -1,10 +1,13 @@
 package mutations
 
 import (
+	"../database"
 	"../types"
-    "../database"
+	"github.com/julestruong/ideas-api/security"
 
-    "log"
+	"log"
+	"strconv"
+	"time"
 
 	"github.com/graphql-go/graphql"
 )
@@ -15,45 +18,60 @@ func GetCreateIdeaMutation() *graphql.Field {
 		Args: graphql.FieldConfigArgument{
 			"body": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(graphql.String),
-            },
-            "email": &graphql.ArgumentConfig{
+			},
+		},
+		Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+			now := time.Now()
+			year, week := now.ISOWeek()
+
+			idea := &types.Idea{
+				Body:  params.Args["body"].(string),
+				Week:  strconv.Itoa(year) + strconv.Itoa(week),
+				Email: security.User.Email,
+			}
+
+			log.Printf("security %v", security.User)
+
+			err := database.InsertIdea(idea)
+
+			if err != nil {
+				log.Printf("Error while trying to create an idea")
+				return "", err
+			}
+
+			log.Printf("idea has been created %v", idea)
+
+			return idea, nil
+		},
+	}
+}
+
+func GetUpdateIdeaMutation() *graphql.Field {
+	return &graphql.Field{
+		Type: types.IdeaType,
+		Args: graphql.FieldConfigArgument{
+			"body": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(graphql.String),
 			},
 		},
 		Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-			idea := &types.Idea{
-				Body: params.Args["firstname"].(string),
-				Email: params.Args["email"].(string),
+			now := time.Now()
+			year, week := now.ISOWeek()
+			body := params.Args["body"].(string)
+
+			queryParams := database.IdeaQueryParams{
+				Body:  body,
+				Week:  strconv.Itoa(year) + strconv.Itoa(week),
+				Email: security.User.Email,
 			}
 
-            database.InsertIdea(idea);
+			idea, err := database.UpdateIdea(queryParams)
 
-			log.Printf("idea has been created");
+			if err != nil {
+				return nil, err
+			}
 
 			return idea, nil
 		},
-    }
-}
-
-func GetUpdateIdeaMutation() *graphql.Field {
-    return &graphql.Field{
-        Type: types.IdeaType,
-        Args: graphql.FieldConfigArgument{
-            "id": &graphql.ArgumentConfig{
-				Type: graphql.NewNonNull(graphql.Int),
-			},
-			"body": &graphql.ArgumentConfig{
-				Type: graphql.NewNonNull(graphql.String),
-			},
-        },
-        Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-
-            id := params.Args["id"].(int)
-            body := params.Args["body"].(string)
-
-            count := database.UpdateIdea(id, body)
-
-            return count, nil
-        },
-    }
+	}
 }
