@@ -1,13 +1,13 @@
 package mutations
 
 import (
+	"../database"
 	"../types"
-    "../database"
-    "../security"
+	"github.com/julestruong/ideas-api/security"
 
-    "log"
-    "time"
-    "strconv"
+	"log"
+	"strconv"
+	"time"
 
 	"github.com/graphql-go/graphql"
 )
@@ -18,58 +18,60 @@ func GetCreateIdeaMutation() *graphql.Field {
 		Args: graphql.FieldConfigArgument{
 			"body": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(graphql.String),
-            },
+			},
 		},
 		Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-            now := time.Now()
-            year, week := now.ISOWeek()
-            
+			now := time.Now()
+			year, week := now.ISOWeek()
+
 			idea := &types.Idea{
-                Body: params.Args["body"].(string),
-                Week: strconv.Itoa(year) + strconv.Itoa(week),
-                Email: security.User.Email, 
+				Body:  params.Args["body"].(string),
+				Week:  strconv.Itoa(year) + strconv.Itoa(week),
+				Email: security.User.Email,
 			}
 
-            err := database.InsertIdea(idea);
+			log.Printf("security %v", security.User)
 
-            if err != nil {
-                log.Printf("Error while trying to create an idea")
-                return "", err
-            }
+			err := database.InsertIdea(idea)
 
-			log.Printf("idea has been created");
+			if err != nil {
+				log.Printf("Error while trying to create an idea")
+				return "", err
+			}
+
+			log.Printf("idea has been created %v", idea)
 
 			return idea, nil
 		},
-    }
+	}
 }
 
 func GetUpdateIdeaMutation() *graphql.Field {
-    return &graphql.Field{
-        Type: types.IdeaType,
-        Args: graphql.FieldConfigArgument{
+	return &graphql.Field{
+		Type: types.IdeaType,
+		Args: graphql.FieldConfigArgument{
 			"body": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(graphql.String),
 			},
-        },
-        Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-            now := time.Now()
-            year, week := now.ISOWeek()
-            body := params.Args["body"].(string)
+		},
+		Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+			now := time.Now()
+			year, week := now.ISOWeek()
+			body := params.Args["body"].(string)
 
-            queryParams := database.IdeaQueryParams{
-                Body: body,
-                Week: strconv.Itoa(year) + strconv.Itoa(week),
-                Email: security.User.Email, 
-            }
+			queryParams := database.IdeaQueryParams{
+				Body:  body,
+				Week:  strconv.Itoa(year) + strconv.Itoa(week),
+				Email: security.User.Email,
+			}
 
-            idea, err := database.UpdateIdea(queryParams)
+			idea, err := database.UpdateIdea(queryParams)
 
-            if err != nil {
-                return nil, err
-            }
+			if err != nil {
+				return nil, err
+			}
 
-            return idea, nil
-        },
-    }
+			return idea, nil
+		},
+	}
 }

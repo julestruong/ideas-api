@@ -1,10 +1,9 @@
 package main
 
 import (
+	"./database"
 	"./mutations"
 	"./queries"
-	// "./security"
-	"./database"
 
 	"database/sql"
 	"fmt"
@@ -59,14 +58,19 @@ func main() {
 		log.Fatalf("Failed to create new schema, error : %v", err)
 	}
 
-	corsHandler := cors.Default()
-
 	httpHandler := handler.New(&handler.Config{
 		Schema: &schema,
 		Pretty: true,
 	})
 
-	http.Handle("/api", security.Handle(corsHandler.Handler(httpHandler)))
+	corsHandler := cors.New(cors.Options{
+		AllowCredentials: true,
+		AllowedMethods:   []string{"GET", "POST", "DELETE"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		Debug:            true,
+	})
+
+	http.Handle("/api", corsHandler.Handler(security.Handle(httpHandler)))
 	log.Printf("ready: listening...\n")
 
 	http.ListenAndServe(":8383", nil)
